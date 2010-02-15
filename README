@@ -1,0 +1,11 @@
+include the module in the helpers:
+
+module ApplicationHelper
+  include Htmlful::DynamicFields
+  ...
+end
+
+include the javascript file in your layout:
+
+= javascript_include_tag "dynamic_fields"
+

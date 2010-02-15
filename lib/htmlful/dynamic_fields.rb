@@ -6,7 +6,7 @@ module Htmlful
           form.semantic_fields_for(relationship_name) do |sub_form|
             sub_form.inputs do
               block1.call(sub_form)
-              concat sub_form.input(:_delete, :as => :boolean, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
+              concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
               concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => t(resource.class.name)), '#', :class => "remove_fieldset"))
             end
           end
