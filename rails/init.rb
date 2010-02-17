@@ -1,0 +1,1 @@
+puts "Please run rake htmlful:update:javascript, with an appropriate FRAMEWORK env variable" unless File.exist?("#{Rails.root}/public/javascripts/dynamic-fields.js")
