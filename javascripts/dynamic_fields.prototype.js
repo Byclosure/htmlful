@@ -1,6 +1,7 @@
 document.observe('click', function(event) {
   if (element = event.findElement('.remove_fieldset')) {
-    if (Event.isLeftClick(event)) {
+    // IE is not recognizing left click, but it's OK because it handles right clicks itself
+    if (Prototype.Browser.IE || event.isLeftClick()) {
       element.up().previous().down('input[type=hidden]').value = 1;
       element.up('fieldset').hide();
       event.stop();
@@ -13,7 +14,8 @@ $$('form div.new_nested_element').each(function(element) {
   var remove_button = element.down('a.remove_element').remove();
   var fragment = element.down('fieldset').remove();
   var remove_button_function = function(event) {
-    if (Event.isLeftClick(event)) {
+    // IE is not recognizing left click, but it's OK because it handles right clicks itself
+    if (Prototype.Browser.IE || event.isLeftClick()) {
       this.up('fieldset').remove();
       event.stop(); 
     }
