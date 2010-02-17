@@ -1,13 +1,14 @@
 module Htmlful
   module DynamicFields
     def _dynamic_fields(form, resource, relationship_name, block1, block2)
+      relationship_i18n_name = resource.class.human_attribute_name(relationship_name).to_s
       form.inputs :title => relationship_name do
         unless resource.send(relationship_name).empty?
           form.semantic_fields_for(relationship_name) do |sub_form|
             sub_form.inputs do
               block1.call(sub_form)
               concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
-              concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => t(resource.class.name)), '#', :class => "remove_fieldset"))
+              concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
             end
           end
         end
@@ -19,7 +20,6 @@ module Htmlful
               end
             end
           }
-          relationship_i18n_name = resource.class.human_attribute_name(relationship_name).to_s
           concat link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_element")
           concat link_to(t(:create_nested_element, :resource_name => relationship_i18n_name), "#", :class => "create_element")
         }

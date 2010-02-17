@@ -8,7 +8,7 @@ end
 
 require 'rake/testtask'
 require 'rake/rdoctask'
-require 'rcov/rcovtask'
+#require 'rcov/rcovtask'
 
 Jeweler::Tasks.new do |s|
   s.name = "bc-htmlful"

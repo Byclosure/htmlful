@@ -1,28 +1,32 @@
-// TODO: finish conversion from jquery
 document.observe('click', function(event) {
   if (element = event.findElement('.remove_fieldset')) {
-    element.up().previous().select('input[type=hidden]').value = 1;
-    element.up('fieldset').hide();
-    event.stop();
+    if (Event.isLeftClick(event)) {
+      element.up().previous().down('input[type=hidden]').value = 1;
+      element.up('fieldset').hide();
+      event.stop();
+    }
   }
 });
+
 $$('form div.new_nested_element').each(function(element) {
   var create_button = element.down('a.create_element');
   var remove_button = element.down('a.remove_element').remove();
   var fragment = element.down('fieldset').remove();
   var remove_button_function = function(event) {
-    this.up('fieldset').remove();
-    event.stop(); 
+    if (Event.isLeftClick(event)) {
+      this.up('fieldset').remove();
+      event.stop(); 
+    }
   }
   create_button.observe('click', function(event) {
     var new_fragment = fragment.cloneNode(true);
-    
+  
     var new_remove_button = remove_button.cloneNode(true);
     new_remove_button.observe('click', remove_button_function);
-    
-    var nested_inputs = create_button.parent().children('div.nested_inputs');
+  
+    var nested_inputs = create_button.up().down('div.nested_inputs');
     nested_inputs.insert(new_fragment);
-    
+  
     // this is a necessary hack for rails http://groups.google.com.au/group/formtastic/browse_thread/thread/9358a13bd26a6108
     var unique_id = new Date().getTime();
     new_fragment.select('input').each(function(e) {
