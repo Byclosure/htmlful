@@ -63,7 +63,7 @@ module Htmlful
     def show_dynamic_fields(form, resource, relationship_name, *attributes)
       form.inputs :title => relationship_name do
         if resource.send(relationship_name).empty?
-          concat t(:no_resource_name_plural, :resource_name_plural => resource.class.human_name(:count => 2).mb_chars.downcase)
+          concat t(:no_resource_name_plural, :resource_name_plural => resource.class.human_attribute_name(relationship_name, :count => 2).mb_chars.downcase)
         else
           form.semantic_fields_for(relationship_name) do |sub_form|
             sub_form.inputs do

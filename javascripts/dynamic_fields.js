@@ -40,7 +40,7 @@ $('form div.new_nested_element').each(function() {
 
     // this is a necessary hack for rails http://groups.google.com.au/group/formtastic/browse_thread/thread/9358a13bd26a6108
     var unique_id = new Date().getTime();
-    new_fragment.find('input').each(function() {
+    new_fragment.find('input,select,textarea').each(function() {
       this.id = this.id && this.id.replace(/NEW_RECORD/, unique_id);
       this.name = this.name && this.name.replace(/NEW_RECORD/, unique_id);
     });
