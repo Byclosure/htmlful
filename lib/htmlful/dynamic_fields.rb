@@ -101,7 +101,7 @@ module Htmlful
 
     def show_subcollection(form, resource, association)
       collection = resource.send(association)
-      resource_name_plural = resource.class.reflect_on_association(association.to_sym).klass.human_name(:count => 2)
+      resource_name_plural = localized_attribute_string(resource, association.to_sym)#resource.class.reflect_on_association(association.to_sym).klass.human_name(:count => 2)
       content_tag(:label, resource_name_plural) +
       if collection.empty?
         content_tag(:p, I18n.t(:no_resource_name_plural, :resource_name_plural => resource_name_plural.mb_chars.downcase))
@@ -113,6 +113,28 @@ module Htmlful
     end
 
     protected
+    
+    ## copied and adapted from formtastic
+    def localized_attribute_string(resource, attr_name)
+      model_name = resource.class.name.underscore
+      action_name = template.params[:action].to_s rescue ''
+      attribute_name = attr_name.to_s
+
+      i18n_scopes = ['{{model}}.{{action}}.{{attribute}}', '{{model}}.{{attribute}}', '{{attribute}}']
+      defaults = i18n_scopes.collect do |i18n_scope|
+        i18n_path = i18n_scope.dup
+        i18n_path.gsub!('{{action}}', action_name)
+        i18n_path.gsub!('{{model}}', model_name)
+        i18n_path.gsub!('{{attribute}}', attribute_name)
+        i18n_path.gsub!('..', '.')
+        i18n_path.to_sym
+      end
+      defaults << ''
+
+      i18n_value = ::I18n.t(defaults.shift, :default => defaults, :scope => "formtastic.labels")
+      i18n_value.blank? ? nil : i18n_value
+    end
+    
     def is_date(resource, attribute)
       col = resource.column_for_attribute(attribute)
       col && col.type == :date
