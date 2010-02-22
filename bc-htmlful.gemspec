@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bc-htmlful}
-  s.version = "0.0.1"
+  s.version = "0.0.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Duarte Henriques", "Vasco Andrade e Silva"]
-  s.date = %q{2010-02-15}
+  s.date = %q{2010-02-22}
   s.description = %q{Form dynamic fields}
   s.email = %q{info@byclosure.com}
   s.extra_rdoc_files = [
@@ -26,7 +26,8 @@ Gem::Specification.new do |s|
      "lib/htmlful.rb",
      "lib/htmlful/dynamic_fields.rb",
      "rails/init.rb",
-     "stylesheets/dynamic_fields.sass"
+     "stylesheets/dynamic_fields.sass",
+     "tasks/htmlful.rake"
   ]
   s.homepage = %q{http://github.com/Byclosure/}
   s.rdoc_options = ["--charset=UTF-8"]
