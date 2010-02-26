@@ -132,6 +132,10 @@ module Htmlful
           }, :class => "sub-collection")
       end
     end
+    
+    def multi_select_input(form, association, options={})
+      form.input(association, options) + content_tag(:li, content_tag(:div, link_to(t(:clear_selected), "#", :class => "clear_multi_select"), :class => "clear_multi_select"))
+    end
 
     protected
     
