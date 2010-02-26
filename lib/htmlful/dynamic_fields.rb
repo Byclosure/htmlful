@@ -76,6 +76,27 @@ module Htmlful
       end
     end
 
+    # TODO: use concat and usage will be nicer
+    def show_attribute_outside_form(resource, attribute, options=nil, &block)
+      if is_date(resource, attribute)
+        resource.send(attribute) # TODO: add the controversial abbr method here, or just use title
+      elsif is_document(resource, attribute)
+        if is_document_empty?(resource, attribute)
+          t(:no_document)
+        else
+          if is_image(resource, attribute)
+            image_style = (options.nil? || options[:image_style].nil?)? :thumb : options[:image_style]
+            image_tag(resource.send(attribute).url(image_style))
+          else
+            link_to(resource.send("#{attribute}_file_name"), resource.send(attribute).url)
+          end
+        end
+      else
+        yield
+      end
+    end
+
+    # inside of a form
     def show_attribute(form, resource, attribute)
       if is_date(resource, attribute)
         form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick'}, :input_html => {:disabled => true})
