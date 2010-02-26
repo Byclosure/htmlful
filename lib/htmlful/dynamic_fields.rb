@@ -136,6 +136,30 @@ module Htmlful
     def multi_select_input(form, association, options={})
       form.input(association, options) + content_tag(:li, content_tag(:div, link_to(t(:clear_selected), "#", :class => "clear_multi_select"), :class => "clear_multi_select"))
     end
+    
+    def form_inputs(form, *attributes)
+      options = attributes.extract_options!
+      resource = form.object
+      returning("") do |html|
+        attributes.each do |attribute|
+          html << form.input(attribute)
+          if is_document(resource, attribute)
+            unless is_document_empty?(resource, attribute)
+              html << "<li>"
+              if is_image(resource, attribute)
+                image_style = (options.nil? || options[:image_style].nil?)? :thumb : options[:image_style]
+                html << image_tag(form.object.send(attribute).url(image_style))
+              else
+                html << link_to(sub_object.send("#{attribute}_file_name"), resource.send(attribute).url)
+              end
+              html << content_tag(:br)
+              html << content_tag(:a, t(:delete_resource, :resource => resource.class.human_attribute_name(attribute)), :href => "#", :class => "delete_document #{resource.class.name.underscore} #{attribute}")
+              html << "</li>"
+            end
+          end
+        end
+      end
+    end
 
     protected
     
