@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bc-htmlful}
-  s.version = "0.0.4"
+  s.version = "0.0.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Duarte Henriques", "Vasco Andrade e Silva"]
-  s.date = %q{2010-02-22}
+  s.date = %q{2010-02-26}
   s.description = %q{Form dynamic fields}
   s.email = %q{info@byclosure.com}
   s.extra_rdoc_files = [
@@ -21,8 +21,8 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "bc-htmlful.gemspec",
-     "javascripts/dynamic_fields.js",
-     "javascripts/dynamic_fields.prototype.js",
+     "javascripts/dynamic-fields.js",
+     "javascripts/dynamic-fields.prototype.js",
      "lib/htmlful.rb",
      "lib/htmlful/dynamic_fields.rb",
      "rails/init.rb",
