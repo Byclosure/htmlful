@@ -32,6 +32,8 @@ module Htmlful
         attributes.each do |attribute|
           if is_date(sub_object, attribute)
             concat sub_form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick'})
+          elsif is_datetime(sub_object, attribute)
+            concat sub_form.input(attribute, :include_blank => false)
           elsif is_document(sub_object, attribute)
             if is_document_empty?(sub_object, attribute)
               concat content_tag(:li, content_tag(:p, t(:no_document)))
@@ -52,6 +54,8 @@ module Htmlful
         attributes.each do |attribute|
           if is_date(sub_object, attribute)
             concat sub_form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick ignore'})
+          elsif is_datetime(sub_object, attribute)
+            concat sub_form.input(attribute, :include_blank => false)
           else
             concat sub_form.input(attribute) # takes care of everything else
           end
@@ -187,6 +191,11 @@ module Htmlful
     def is_date(resource, attribute)
       col = resource.column_for_attribute(attribute)
       col && col.type == :date
+    end
+    
+    def is_datetime(resource, attribute)
+      col = resource.column_for_attribute(attribute)
+      col && col.type == :datetime
     end
 
     # taken from formtastic
