@@ -6,7 +6,7 @@ module Htmlful
         unless resource.send(relationship_name).empty?
           form.semantic_fields_for(relationship_name) do |sub_form|
             sub_form.inputs do
-              block1.call(sub_form)
+              block1.call(sub_form, relationship_i18n_name)
             end
           end
         end
@@ -25,7 +25,7 @@ module Htmlful
     end
 
     def dynamic_fields(form, resource, relationship_name, *attributes)
-      block1 = lambda do |sub_form|
+      block1 = lambda do |sub_form, relationship_i18n_name|
         sub_object = sub_form.object
         attributes.each do |attribute|
           if is_date?(sub_object, attribute)
@@ -33,8 +33,8 @@ module Htmlful
             concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
             concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           elsif is_image?(sub_object, attribute) && !is_image_empty?(sub_object) # NOTE: an Image is also a document
-            concat image_tag(sub_object.send(attribute).url(:thumb))
-            concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
+            concat link_to(image_tag(sub_object.send(attribute).url(:thumb)), sub_object.send(attribute).url)
+#            concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
             concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
             concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           elsif is_image?(sub_object, attribute) && is_image_empty?(sub_object) # NOTE: an Image is also a document
