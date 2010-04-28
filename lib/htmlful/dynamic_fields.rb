@@ -34,7 +34,7 @@ module Htmlful
             concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           elsif is_image?(sub_object, attribute) && !is_image_empty?(sub_object) # NOTE: an Image is also a document
             image_opts = if sub_object.respond_to?(:geocoded?) && sub_object.geocoded?
-              { :class => "geo-photo", :"data-lat-field-id" => sub_object.latitude, :"data-lng-field-id" => sub_object.longitude }
+              { :class => "geo-photo", :"data-lat" => sub_object.latitude, :"data-lng" => sub_object.longitude }
             else
               {}
             end
