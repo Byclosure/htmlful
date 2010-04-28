@@ -33,8 +33,12 @@ module Htmlful
             concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
             concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           elsif is_image?(sub_object, attribute) && !is_image_empty?(sub_object) # NOTE: an Image is also a document
-            concat link_to(image_tag(sub_object.send(attribute).url(:thumb)), sub_object.send(attribute).url)
-#            concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
+            image_opts = if sub_object.respond_to?(:geocoded?) && sub_object.geocoded?
+              { :class => "geo-photo", :"data-lat-field-id" => sub_object.latitude, :"data-lng-field-id" => sub_object.longitude }
+            else
+              {}
+            end
+            concat link_to(image_tag(sub_object.send(attribute).url(:thumb), image_opts), sub_object.send(attribute).url)
             concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
             concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           elsif is_image?(sub_object, attribute) && is_image_empty?(sub_object) # NOTE: an Image is also a document
