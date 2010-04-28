@@ -7,8 +7,6 @@ module Htmlful
           form.semantic_fields_for(relationship_name) do |sub_form|
             sub_form.inputs do
               block1.call(sub_form)
-              concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
-              concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
             end
           end
         end
@@ -30,32 +28,35 @@ module Htmlful
       block1 = lambda do |sub_form|
         sub_object = sub_form.object
         attributes.each do |attribute|
-          if is_date(sub_object, attribute)
+          if is_date?(sub_object, attribute)
             concat sub_form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick'})
-          elsif is_datetime(sub_object, attribute)
-            concat sub_form.input(attribute, :include_blank => false)
-          elsif is_document(sub_object, attribute)
-            if is_document_empty?(sub_object, attribute)
-              concat content_tag(:li, content_tag(:p, t(:no_document)))
-            else
-              if is_image(sub_object, attribute)
-                concat image_tag(sub_form.object.send(attribute).url(:thumb))
-              else
-                concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
-              end
-            end
+            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
+            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
+          elsif is_image?(sub_object, attribute) && !is_image_empty?(sub_object) # NOTE: an Image is also a document
+            concat image_tag(sub_object.send(attribute).url(:thumb))
+            concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
+            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
+            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
+          elsif is_image?(sub_object, attribute) && is_image_empty?(sub_object) # NOTE: an Image is also a document
+            # nothing
+          elsif is_document?(sub_object, attribute) && is_document_empty?(sub_object, attribute)
+            concat content_tag(:li, content_tag(:p, t(:no_document)))
+          elsif is_document?(sub_object, attribute) && !is_document_empty?(sub_object, attribute)
+            concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
+            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
+            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           else
             concat sub_form.input(attribute)
+            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
+            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           end
         end
       end
       block2 = lambda do |sub_form|
         sub_object = sub_form.object
         attributes.each do |attribute|
-          if is_date(sub_object, attribute)
+          if is_date?(sub_object, attribute)
             concat sub_form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick ignore'})
-          elsif is_datetime(sub_object, attribute)
-            concat sub_form.input(attribute, :include_blank => false)
           else
             concat sub_form.input(attribute) # takes care of everything else
           end
@@ -82,13 +83,13 @@ module Htmlful
 
     # TODO: use concat and usage will be nicer
     def show_attribute_outside_form(resource, attribute, options=nil, &block)
-      if is_date(resource, attribute)
+      if is_date?(resource, attribute)
         resource.send(attribute) # TODO: add the controversial abbr method here, or just use title
-      elsif is_document(resource, attribute)
-        if is_document_empty?(resource, attribute)
+      elsif is_document?(resource, attribute)
+        if is_document?_empty?(resource, attribute)
           t(:no_document)
         else
-          if is_image(resource, attribute)
+          if is_image?(resource, attribute)
             image_style = (options.nil? || options[:image_style].nil?)? :thumb : options[:image_style]
             image_tag(resource.send(attribute).url(image_style))
           else
@@ -102,17 +103,17 @@ module Htmlful
 
     # inside of a form
     def show_attribute(form, resource, attribute)
-      if is_date(resource, attribute)
+      if is_date?(resource, attribute)
         form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick'}, :input_html => {:disabled => true})
-      elsif is_document(resource, attribute)
+      elsif is_document?(resource, attribute)
         content_tag(:fieldset) do
           content_tag(:legend) do
             content_tag(:label, I18n.t("formtastic.labels.#{resource.class.name.underscore}.#{attribute}"))
           end +
-          if is_document_empty?(resource, attribute)
+            if is_document?_empty?(resource, attribute)
             t(:no_document)
           else
-            if is_image(resource, attribute)
+            if is_image?(resource, attribute)
               image_tag(resource.send(attribute).url(:thumb))
             else
               link_to(resource.send("#{attribute}_file_name"), resource.send(attribute).url)
@@ -128,11 +129,11 @@ module Htmlful
       collection = resource.send(association)
       resource_name_plural = localized_attribute_string(resource, association.to_sym)#resource.class.reflect_on_association(association.to_sym).klass.human_name(:count => 2)
       content_tag(:label, resource_name_plural) +
-      if collection.empty?
+        if collection.empty?
         content_tag(:p, I18n.t(:no_resource_name_plural, :resource_name_plural => resource_name_plural.mb_chars.downcase))
       else
         content_tag(:ul, collection.inject("") { |html, sub_resource|
-          html + content_tag(:li, link_to(sub_resource.send(form.send(:detect_label_method, [sub_resource])), sub_resource))
+            html + content_tag(:li, link_to(sub_resource.send(form.send(:detect_label_method, [sub_resource])), sub_resource))
           }, :class => "sub-collection")
       end
     end
@@ -147,10 +148,10 @@ module Htmlful
       returning("") do |html|
         attributes.each do |attribute|
           html << form.input(attribute)
-          if is_document(resource, attribute)
+          if is_document?(resource, attribute)
             unless is_document_empty?(resource, attribute)
               html << "<li>"
-              if is_image(resource, attribute)
+              if is_image?(resource, attribute)
                 image_style = (options.nil? || options[:image_style].nil?)? :thumb : options[:image_style]
                 html << image_tag(form.object.send(attribute).url(image_style))
               else
@@ -188,19 +189,14 @@ module Htmlful
       i18n_value.blank? ? nil : i18n_value
     end
     
-    def is_date(resource, attribute)
+    def is_date?(resource, attribute)
       col = resource.column_for_attribute(attribute)
       col && col.type == :date
-    end
-    
-    def is_datetime(resource, attribute)
-      col = resource.column_for_attribute(attribute)
-      col && col.type == :datetime
     end
 
     # taken from formtastic
     @@file_methods = [:file?, :public_filename]
-    def is_document(resource, attribute)
+    def is_document?(resource, attribute)
       file = resource.send(attribute) if resource.respond_to?(attribute)
       file && @@file_methods.any? { |m| file.respond_to?(m) }
     end
@@ -208,11 +204,16 @@ module Htmlful
     def is_document_empty?(resource, attribute)
       resource.send("#{attribute}_file_name").blank?
     end
+
+    def is_image_empty?(resource)
+      resource.new_record?
+    end
     
     # XXX: if image is missing, this will return false because it queries the styles. Find out what we want
-    def is_image(resource, attribute)
+    def is_image?(resource, attribute)
       file = resource.send(attribute) if resource.respond_to?(attribute)
-      is_document(resource, attribute) && file && file.respond_to?(:styles) && !file.styles.blank?
+      is_document?(resource, attribute) && file && file.respond_to?(:styles) && !file.styles.blank?
     end
   end
 end
+
