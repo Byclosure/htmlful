@@ -1,12 +1,25 @@
 module Htmlful
   module DynamicFields
-    def _dynamic_fields(form, resource, relationship_name, block1, block2)
-      relationship_i18n_name = resource.class.human_attribute_name(relationship_name).to_s
+    def add_remove_existing_sub_object_link_in_sub_form(sub_form, relationship_i18n_name)
+      concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
+      concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
+    end
+
+    def add_remove_and_create_new_nested_input_links(relationship_i18n_name)
+      concat link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_element")
+      concat link_to(t(:create_nested_element, :resource_name => relationship_i18n_name), "#", :class => "create_element")
+    end
+
+    def get_relationship_i18n_name(resource, relationship_name)
+      resource.class.human_attribute_name(relationship_name) #.to_s
+    end
+
+    def create_dynamic_fields_form(form, resource, relationship_name, block1, block2)
       form.inputs :title => relationship_name do
         unless resource.send(relationship_name).empty?
           form.semantic_fields_for(relationship_name) do |sub_form|
             sub_form.inputs do
-              block1.call(sub_form, relationship_i18n_name)
+              block1.call(sub_form)
             end
           end
         end
@@ -18,41 +31,47 @@ module Htmlful
               end
             end
           }
-          concat link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_element")
-          concat link_to(t(:create_nested_element, :resource_name => relationship_i18n_name), "#", :class => "create_element")
+          add_remove_and_create_new_nested_input_links(get_relationship_i18n_name(resource, relationship_name))
         }
       end
     end
 
     def dynamic_fields(form, resource, relationship_name, *attributes)
-      block1 = lambda do |sub_form, relationship_i18n_name|
+      block1 = lambda do |sub_form|
         sub_object = sub_form.object
         attributes.each do |attribute|
           if is_date?(sub_object, attribute)
             concat sub_form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick'})
-            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
-            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
-          elsif is_image?(sub_object, attribute) && !is_image_empty?(sub_object) # NOTE: an Image is also a document
-            image_opts = if sub_object.respond_to?(:geocoded?) && sub_object.geocoded?
-              { :class => "geo-photo", :"data-lat" => sub_object.latitude, :"data-lng" => sub_object.longitude }
+            add_remove_existing_sub_object_link_in_sub_form(sub_form, get_relationship_i18n_name(resource, relationship_name))
+          elsif is_datetime?(sub_object, attribute)
+            concat sub_form.input(attribute, :include_blank => false)
+            add_remove_existing_sub_object_link_in_sub_form(sub_form, get_relationship_i18n_name(resource, relationship_name))
+          elsif is_document?(sub_object, attribute)
+            if is_document_empty?(sub_object, attribute)
+              # XXX Is this case is similar to an is_empty_image? If so it shouldn't show anything, if not remove the comments below
+              # concat content_tag(:li, content_tag(:p, t(:no_document)))
+              # add_remove_existing_sub_object_link_in_sub_form(sub_form, get_relationship_i18n_name(resource, relationship_name))
             else
-              {}
+              if is_image?(sub_object, attribute)
+                if is_image_empty?(sub_object)
+                  # XXX Do nohting, see is_empty_document? above
+                else
+                  image_opts = if sub_object.respond_to?(:geocoded?) && sub_object.geocoded?
+                    { :class => "geo-photo", :"data-lat" => sub_object.latitude, :"data-lng" => sub_object.longitude }
+                  else
+                    {}
+                  end
+                  concat link_to(image_tag(sub_object.send(attribute).url(:thumb), image_opts), sub_object.send(attribute).url)
+                  add_remove_existing_sub_object_link_in_sub_form(sub_form, get_relationship_i18n_name(resource, relationship_name))
+                end
+              else
+                concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
+                add_remove_existing_sub_object_link_in_sub_form(sub_form, get_relationship_i18n_name(resource, relationship_name))
+              end
             end
-            concat link_to(image_tag(sub_object.send(attribute).url(:thumb), image_opts), sub_object.send(attribute).url)
-            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
-            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
-          elsif is_image?(sub_object, attribute) && is_image_empty?(sub_object) # NOTE: an Image is also a document
-            # nothing
-          elsif is_document?(sub_object, attribute) && is_document_empty?(sub_object, attribute)
-            concat content_tag(:li, content_tag(:p, t(:no_document)))
-          elsif is_document?(sub_object, attribute) && !is_document_empty?(sub_object, attribute)
-            concat content_tag(:li, content_tag(:p, link_to(sub_object.send("#{attribute}_file_name"), sub_object.send(attribute).url)))
-            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
-            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
           else
             concat sub_form.input(attribute)
-            concat sub_form.input(:_delete, :as => :hidden, :wrapper_html => {:class => 'remove'}, :input_html => {:class => "checkbox_remove"})
-            concat content_tag(:li, link_to(t(:remove_nested_element, :resource_name => relationship_i18n_name), '#', :class => "remove_fieldset"))
+            add_remove_existing_sub_object_link_in_sub_form(sub_form, get_relationship_i18n_name(resource, relationship_name))
           end
         end
       end
@@ -61,12 +80,14 @@ module Htmlful
         attributes.each do |attribute|
           if is_date?(sub_object, attribute)
             concat sub_form.input(attribute, :as => :string, :wrapper_html => {:class => 'datepick ignore'})
+          elsif is_datetime?(sub_object, attribute)
+            concat sub_form.input(attribute, :include_blank => false)
           else
             concat sub_form.input(attribute) # takes care of everything else
           end
         end
       end
-      _dynamic_fields(form, resource, relationship_name, block1, block2)
+      create_dynamic_fields_form(form, resource, relationship_name, block1, block2)
     end
 
     def show_dynamic_fields(form, resource, relationship_name, *attributes)
@@ -90,7 +111,7 @@ module Htmlful
       if is_date?(resource, attribute)
         resource.send(attribute) # TODO: add the controversial abbr method here, or just use title
       elsif is_document?(resource, attribute)
-        if is_document?_empty?(resource, attribute)
+        if is_document_empty?(resource, attribute)
           t(:no_document)
         else
           if is_image?(resource, attribute)
@@ -114,7 +135,7 @@ module Htmlful
           content_tag(:legend) do
             content_tag(:label, I18n.t("formtastic.labels.#{resource.class.name.underscore}.#{attribute}"))
           end +
-            if is_document?_empty?(resource, attribute)
+            if is_document_empty?(resource, attribute)
             t(:no_document)
           else
             if is_image?(resource, attribute)
@@ -197,6 +218,11 @@ module Htmlful
       col = resource.column_for_attribute(attribute)
       col && col.type == :date
     end
+    
+    def is_datetime?(resource, attribute)
+      col = resource.column_for_attribute(attribute)
+      col && col.type == :datetime
+    end
 
     # taken from formtastic
     @@file_methods = [:file?, :public_filename]
@@ -212,7 +238,7 @@ module Htmlful
     def is_image_empty?(resource)
       resource.new_record?
     end
-    
+
     # XXX: if image is missing, this will return false because it queries the styles. Find out what we want
     def is_image?(resource, attribute)
       file = resource.send(attribute) if resource.respond_to?(attribute)

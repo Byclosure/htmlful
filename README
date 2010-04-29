@@ -11,3 +11,4 @@ include the javascript file in your layout:
 
 
 rake htmlful:update:javascripts
+
