@@ -153,6 +153,7 @@ module Htmlful
     def show_subcollection(form, resource, association)
       collection = resource.send(association)
       resource_name_plural = localized_attribute_string(resource, association.to_sym)#resource.class.reflect_on_association(association.to_sym).klass.human_name(:count => 2)
+      raise ("Translation missing #{params[:locale]}, #{resource.class.human_name}, #{association}") if resource_name_plural.nil?
       content_tag(:label, resource_name_plural) +
         if collection.empty?
         content_tag(:p, I18n.t(:no_resource_name_plural, :resource_name_plural => resource_name_plural.mb_chars.downcase))
