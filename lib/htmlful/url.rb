@@ -10,7 +10,7 @@ module Htmlful
   
     module InstanceMethods
       def to_param
-        url_str = self.class.url_fields.map {|f| send(f).parameterize }.join("-")
+        url_str = self.class.url_fields.map {|f| send(f).to_s.parameterize }.join("-")
         "#{id}-#{url_str}"
       end
     end
